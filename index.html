@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>金蝶云单点登录</title>
+    <meta name="description" content="金蝶云单点登录应用 - 离线可用">
+    <meta name="theme-color" content="#007bff">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+        
+        h1 {
+            color: var(--dark-color);
+            margin-bottom: 10px;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            color: var(--dark-color);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--dark-color);
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #0069d9;
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+        }
+        
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e0a800;
+        }
+        
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        
+        .result {
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .loading {
+            text-align: center;
+            display: none;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            font-size: 16px;
+        }
+        
+        .tab button:hover {
+            background-color: #ddd;
+        }
+        
+        .tab button.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .tabcontent {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            background-color: white;
+        }
+        
+        .config-section {
+            margin-bottom: 30px;
+        }
+        
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .environment-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .environment-selector select {
+            flex: 1;
+        }
+        
+        .recent-users {
+            margin-top: 15px;
+        }
+        
+        .recent-users-list {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0;
+        }
+        
+        .recent-users-list li {
+            padding: 8px 12px;
+            background-color: #f8f9fa;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .recent-users-list li:hover {
+            background-color: #e9ecef;
+        }
+        
+        .remove-user {
+            background: none;
+            border: none;
+            color: var(--danger-color);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* 更新提示样式 */
+        .update-banner {
+            background-color: var(--warning-color);
+            color: #212529;
+            padding: 10px 20px;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .update-banner button {
+            margin-left: 10px;
+            padding: 5px 10px;
+            background-color: var(--dark-color);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .config-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="update-banner" id="updateBanner">
+        有新版本可用
+        <button onclick="updateApp()">更新</button>
+    </div>
+    
+    <div class="container">
+        <header>
+            <h1>金蝶云单点登录</h1>
+            <p>完全静态的本地单点登录解决方案</p>
+        </header>
+        
+        <main>
+            <div class="card">
+                <div class="tab">
+                    <button class="tablinks active" onclick="openTab(event, 'config')">系统配置</button>
+                    <button class="tablinks" onclick="openTab(event, 'login')">用户登录</button>
+                </div>
+                
+                <div id="config" class="tabcontent" style="display: block;">
+                    <h2>系统配置</h2>
+                    
+                    <div class="environment-selector">
+                        <label for="environmentSelect">环境选择:</label>
+                        <select id="environmentSelect" onchange="loadEnvironmentConfig()">
+                            <option value="default">默认环境</option>
+                        </select>
+                        <button class="btn btn-sm" onclick="addNewEnvironment()">新增环境</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteEnvironment()">删除环境</button>
+                    </div>
+                    
+                    <div class="config-grid">
+                        <div class="form-group">
+                            <label for="X_KDAPI_ACCTID">账户ID (X_KDAPI_ACCTID):</label>
+                            <input type="text" id="X_KDAPI_ACCTID" placeholder="请输入账户ID">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="X_KDAPI_APPID">应用ID (X_KDAPI_APPID):</label>
+                            <input type="text" id="X_KDAPI_APPID" placeholder="请输入应用ID">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="X_KDAPI_APPSEC">应用密钥 (X_KDAPI_APPSEC):</label>
+                            <input type="password" id="X_KDAPI_APPSEC" placeholder="请输入应用密钥">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="X_KDAPI_SERVERURL">服务器URL (X_KDAPI_SERVERURL):</label>
+                            <input type="text" id="X_KDAPI_SERVERURL" placeholder="例如: https://your-server.kingdee.com/">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="X_KDAPI_LCID">语言ID (X_KDAPI_LCID):</label>
+                            <select id="X_KDAPI_LCID">
+                                <option value="2052">2052 - 简体中文</option>
+                                <option value="1033">1033 - English</option>
+                                <option value="1028">1028 - 繁體中文</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button class="btn" onclick="saveConfig()">保存配置</button>
+                    <button class="btn" onclick="loadConfig()" style="margin-left: 10px;">加载已保存配置</button>
+                    <button class="btn btn-success" onclick="testConfig()" style="margin-left: 10px;">测试配置</button>
+                </div>
+                
+                <div id="login" class="tabcontent">
+                    <h2>用户登录</h2>
+                    
+                    <div class="form-group">
+                        <label for="username">用户名:</label>
+                        <input type="text" id="username" placeholder="请输入用户名" oninput="filterRecentUsers()">
+                    </div>
+                    
+                    <div class="recent-users">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <label>最近使用的用户:</label>
+                            <button class="btn btn-sm btn-warning" onclick="clearRecentUsers()">清空历史</button>
+                        </div>
+                        <ul id="recentUsersList" class="recent-users-list">
+                            <!-- 最近用户列表将通过JavaScript动态填充 -->
+                        </ul>
+                    </div>
+                    
+                    <button class="btn btn-block" onclick="performSSO()">执行单点登录</button>
+                    
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <p>正在生成签名并跳转...</p>
+                    </div>
+                    
+                    <div class="result alert-success" id="successResult">
+                        <p>正在跳转到金蝶云系统...</p>
+                    </div>
+                    
+                    <div class="result alert-danger" id="errorResult">
+                        <p id="errorMessage"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>使用说明</h2>
+                <ol>
+                    <li><strong>系统配置</strong>：
+                        <ul>
+                            <li>在"系统配置"标签页中选择或创建环境</li>
+                            <li>填写金蝶云系统的配置信息</li>
+                            <li>点击"保存配置"按钮保存当前环境配置</li>
+                        </ul>
+                    </li>
+                    <li><strong>用户登录</strong>：
+                        <ul>
+                            <li>切换到"用户登录"标签页</li>
+                            <li>从最近使用的用户列表中选择或输入新用户名</li>
+                            <li>点击"执行单点登录"按钮</li>
+                        </ul>
+                    </li>
+                    <li><strong>自动跳转</strong>：系统将自动计算签名并在新窗口中打开金蝶云系统</li>
+                </ol>
+                <p><strong>注意：</strong>所有配置信息和用户名历史将保存在浏览器本地存储中，不会上传到任何服务器。</p>
+                <p><strong>离线功能：</strong>此应用支持离线使用，首次访问后即可在无网络情况下使用大部分功能。</p>
+            </div>
+        </main>
+        
+        <footer>
+            <p>金蝶云单点登录 &copy; 2025</p>
+        </footer>
+    </div>
+
+    <script>
+        // Service Worker 相关变量
+        let deferredPrompt;
+        let newWorker;
+        
+        // 注册 Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('SW registered: ', registration);
+                        
+                        // 检查是否有更新
+                        registration.addEventListener('updatefound', () => {
+                            newWorker = registration.installing;
+                            
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // 显示更新提示
+                                    document.getElementById('updateBanner').style.display = 'block';
+                                }
+                            });
+                        });
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+            
+            // 监听 controllerchange 事件
+            let refreshing;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!refreshing) {
+                    window.location.reload();
+                    refreshing = true;
+                }
+            });
+        }
+        
+        // 更新应用
+        function updateApp() {
+            if (newWorker) {
+                newWorker.postMessage({ action: 'skipWaiting' });
+            }
+        }
+        
+        // 页面加载时初始化
+        window.onload = function() {
+            loadEnvironmentList();
+            loadEnvironmentConfig();
+            loadRecentUsers();
+        };
+        
+        // Tab切换功能
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+        
+        // 加载环境列表
+        function loadEnvironmentList() {
+            const environments = JSON.parse(localStorage.getItem('kingdee_environments') || '{}');
+            const select = document.getElementById('environmentSelect');
+            
+            // 保存当前选中值
+            const currentValue = select.value;
+            
+            // 清空选项
+            select.innerHTML = '<option value="default">默认环境</option>';
+            
+            // 添加所有环境
+            Object.keys(environments).forEach(envName => {
+                if (envName !== 'default') {
+                    const option = document.createElement('option');
+                    option.value = envName;
+                    option.textContent = envName;
+                    select.appendChild(option);
+                }
+            });
+            
+            // 恢复选中值
+            if (currentValue && environments[currentValue]) {
+                select.value = currentValue;
+            }
+        }
+        
+        // 添加新环境
+        function addNewEnvironment() {
+            const envName = prompt('请输入新环境的名称:');
+            if (envName) {
+                const environments = JSON.parse(localStorage.getItem('kingdee_environments') || '{}');
+                if (!environments[envName]) {
+                    environments[envName] = {};
+                    localStorage.setItem('kingdee_environments', JSON.stringify(environments));
+                    loadEnvironmentList();
+                    document.getElementById('environmentSelect').value = envName;
+                    loadEnvironmentConfig();
+                } else {
+                    alert('环境名称已存在');
+                }
+            }
+        }
+        
+        // 删除当前环境
+        function deleteEnvironment() {
+            const select = document.getElementById('environmentSelect');
+            const envName = select.value;
+            
+            if (envName === 'default') {
+                alert('不能删除默认环境');
+                return;
+            }
+            
+            if (confirm(`确定要删除环境 "${envName}" 吗？`)) {
+                const environments = JSON.parse(localStorage.getItem('kingdee_environments') || '{}');
+                delete environments[envName];
+                localStorage.setItem('kingdee_environments', JSON.stringify(environments));
+                select.value = 'default';
+                loadEnvironmentList();
+                loadEnvironmentConfig();
+            }
+        }
+        
+        // 保存配置到当前环境
+        function saveConfig() {
+            const select = document.getElementById('environmentSelect');
+            const envName = select.value;
+            
+            const config = {
+                X_KDAPI_ACCTID: document.getElementById('X_KDAPI_ACCTID').value,
+                X_KDAPI_APPID: document.getElementById('X_KDAPI_APPID').value,
+                X_KDAPI_APPSEC: document.getElementById('X_KDAPI_APPSEC').value,
+                X_KDAPI_SERVERURL: document.getElementById('X_KDAPI_SERVERURL').value,
+                X_KDAPI_LCID: document.getElementById('X_KDAPI_LCID').value
+            };
+            
+            const environments = JSON.parse(localStorage.getItem('kingdee_environments') || '{}');
+            environments[envName] = config;
+            localStorage.setItem('kingdee_environments', JSON.stringify(environments));
+            
+            alert(`"${envName}" 环境配置已保存`);
+        }
+        
+        // 加载当前环境配置
+        function loadEnvironmentConfig() {
+            const select = document.getElementById('environmentSelect');
+            const envName = select.value;
+            
+            const environments = JSON.parse(localStorage.getItem('kingdee_environments') || '{}');
+            const config = environments[envName] || {};
+            
+            document.getElementById('X_KDAPI_ACCTID').value = config.X_KDAPI_ACCTID || '';
+            document.getElementById('X_KDAPI_APPID').value = config.X_KDAPI_APPID || '';
+            document.getElementById('X_KDAPI_APPSEC').value = config.X_KDAPI_APPSEC || '';
+            document.getElementById('X_KDAPI_SERVERURL').value = config.X_KDAPI_SERVERURL || '';
+            document.getElementById('X_KDAPI_LCID').value = config.X_KDAPI_LCID || '2052';
+        }
+        
+        // 加载配置（兼容旧版本）
+        function loadConfig() {
+            loadEnvironmentConfig();
+            alert('已加载当前环境配置');
+        }
+        
+        // 测试配置
+        function testConfig() {
+            const config = {
+                X_KDAPI_ACCTID: document.getElementById('X_KDAPI_ACCTID').value,
+                X_KDAPI_APPID: document.getElementById('X_KDAPI_APPID').value,
+                X_KDAPI_APPSEC: document.getElementById('X_KDAPI_APPSEC').value,
+                X_KDAPI_SERVERURL: document.getElementById('X_KDAPI_SERVERURL').value,
+                X_KDAPI_LCID: document.getElementById('X_KDAPI_LCID').value
+            };
+            
+            if (!config.X_KDAPI_ACCTID || !config.X_KDAPI_APPID || !config.X_KDAPI_APPSEC || !config.X_KDAPI_SERVERURL) {
+                alert('请填写所有必填配置项');
+                return;
+            }
+            
+            alert('配置完整，可以进行登录操作');
+        }
+        
+        // 执行单点登录
+        function performSSO() {
+            // 隐藏之前的结果
+            hideResults();
+            
+            // 获取配置
+            const select = document.getElementById('environmentSelect');
+            const envName = select.value;
+            const environments = JSON.parse(localStorage.getItem('kingdee_environments') || '{}');
+            const config = environments[envName] || {};
+            
+            // 检查必要配置
+            if (!config.X_KDAPI_ACCTID || !config.X_KDAPI_APPID || !config.X_KDAPI_APPSEC || !config.X_KDAPI_SERVERURL) {
+                showError('请完善当前环境的所有系统配置项');
+                return;
+            }
+            
+            // 获取用户名
+            const username = document.getElementById('username').value.trim();
+            if (!username) {
+                showError('请输入用户名');
+                return;
+            }
+            
+            // 添加到最近使用的用户列表
+            addRecentUser(username);
+            
+            // 显示加载状态
+            document.getElementById('loading').style.display = 'block';
+            
+            try {
+                // 构建SSO URL
+                const redirectUrl = buildSSOUrl(config, username);
+                
+                // 显示成功消息
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('successResult').style.display = 'block';
+                
+                // 在新窗口中打开金蝶云系统
+                setTimeout(() => {
+                    window.open(redirectUrl, '_blank');
+                    // 可选：在当前窗口显示成功消息后关闭
+                    // document.getElementById('successResult').innerHTML = '<p>已在新窗口中打开金蝶云系统</p>';
+                }, 1500);
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                showError(error.message);
+            }
+        }
+        
+        // 最近使用的用户功能
+        let recentUsers = [];
+        
+        // 加载最近使用的用户
+        function loadRecentUsers() {
+            recentUsers = JSON.parse(localStorage.getItem('kingdee_recent_users') || '[]');
+            updateRecentUsersList();
+        }
+        
+        // 添加到最近使用的用户
+        function addRecentUser(username) {
+            // 移除已存在的相同用户名
+            recentUsers = recentUsers.filter(user => user !== username);
+            // 添加到开头
+            recentUsers.unshift(username);
+            // 限制数量为10个
+            if (recentUsers.length > 10) {
+                recentUsers = recentUsers.slice(0, 10);
+            }
+            // 保存到本地存储
+            localStorage.setItem('kingdee_recent_users', JSON.stringify(recentUsers));
+            // 更新显示
+            updateRecentUsersList();
+        }
+        
+        // 更新最近用户列表显示
+        function updateRecentUsersList() {
+            const listElement = document.getElementById('recentUsersList');
+            listElement.innerHTML = '';
+            
+            recentUsers.forEach(user => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span onclick="selectUser('${user}')">${user}</span>
+                    <button class="remove-user" onclick="removeRecentUser('${user}')">&times;</button>
+                `;
+                listElement.appendChild(li);
+            });
+        }
+        
+        // 选择用户
+        function selectUser(username) {
+            document.getElementById('username').value = username;
+        }
+        
+        // 移除最近用户
+        function removeRecentUser(username) {
+            recentUsers = recentUsers.filter(user => user !== username);
+            localStorage.setItem('kingdee_recent_users', JSON.stringify(recentUsers));
+            updateRecentUsersList();
+        }
+        
+        // 清空最近用户
+        function clearRecentUsers() {
+            if (confirm('确定要清空最近使用的用户历史吗？')) {
+                recentUsers = [];
+                localStorage.removeItem('kingdee_recent_users');
+                updateRecentUsersList();
+            }
+        }
+        
+        // 过滤最近用户（根据输入内容）
+        function filterRecentUsers() {
+            const input = document.getElementById('username').value.toLowerCase();
+            const listElement = document.getElementById('recentUsersList');
+            const items = listElement.getElementsByTagName('li');
+            
+            for (let i = 0; i < items.length; i++) {
+                const userName = items[i].getElementsByTagName('span')[0].textContent.toLowerCase();
+                if (userName.includes(input)) {
+                    items[i].style.display = '';
+                } else {
+                    items[i].style.display = 'none';
+                }
+            }
+        }
+        
+        // 构建单点登录URL
+        function buildSSOUrl(env, username) {
+            // 从环境变量获取配置
+            const dbId = env.X_KDAPI_ACCTID || "";
+            const appId = env.X_KDAPI_APPID || "";
+            const appSecret = env.X_KDAPI_APPSEC || "";
+            const lcId = env.X_KDAPI_LCID || "2052"; // 默认简体中文
+            const serverUrl = env.X_KDAPI_SERVERURL || "";
+            
+            if (!username) {
+                throw new Error("Username is required");
+            }
+            
+            if (!dbId || !appId || !appSecret || !serverUrl) {
+                throw new Error("Missing required configuration in environment variables: dbId, appId, appSecret, and serverUrl must be set");
+            }
+            
+            const timestamp = Math.floor(Date.now() / 1000);
+            const strArray = [dbId, username, appId, appSecret, timestamp.toString()];
+            strArray.sort();
+            
+            // 与Java版本保持完全一致的字符串拼接方式
+            let combStr = "";
+            for (let i = 0; i < strArray.length; i++) {
+                combStr += strArray[i];
+            }
+            
+            // 使用更可靠的SHA1实现
+            const strSign = sha1Hash(combStr);
+            const sign = Array.from(new Uint8Array(strSign))
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('')
+                .toUpperCase();
+            
+            // 构建参数字符串，与Java版本保持一致
+            const urlPara = `{dbid:'${dbId}',username:'${username}',appid:'${appId}',signeddata:'${sign}',timestamp:'${timestamp}',lcid:'${lcId}',origintype:'simpas',formid:'',formtype:'bill',pkid:''}`;
+            
+            // 确保serverUrl以/结尾，然后拼接路径
+            const normalizedServerUrl = serverUrl.endsWith('/') ? serverUrl : serverUrl + '/';
+            return normalizedServerUrl + "html5/Index.aspx?ud=" + encodeURIComponent(urlPara);
+        }
+        
+        // SHA1哈希算法实现（修复版）
+        function sha1Hash(data) {
+            const msg = unescape(encodeURIComponent(data));
+            let H = [0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0];
+            
+            let W = new Array(80);
+            let a, b, c, d, e, i, j, T;
+            
+            // 将字符串转换为字节数组
+            let msgLen = msg.length;
+            let wordArray = [];
+            for (i = 0; i < msgLen - 3; i += 4) {
+                j = msg.charCodeAt(i) << 24 | msg.charCodeAt(i + 1) << 16 |
+                    msg.charCodeAt(i + 2) << 8 | msg.charCodeAt(i + 3);
+                wordArray.push(j);
+            }
+            
+            switch (msgLen % 4) {
+                case 0:
+                    i = 0x080000000;
+                    break;
+                case 1:
+                    i = msg.charCodeAt(msgLen - 1) << 24 | 0x0800000;
+                    break;
+                case 2:
+                    i = msg.charCodeAt(msgLen - 2) << 24 | msg.charCodeAt(msgLen - 1) << 16 | 0x08000;
+                    break;
+                case 3:
+                    i = msg.charCodeAt(msgLen - 3) << 24 | msg.charCodeAt(msgLen - 2) << 16 |
+                        msg.charCodeAt(msgLen - 1) << 8 | 0x80;
+                    break;
+            }
+            
+            wordArray.push(i);
+            
+            while ((wordArray.length % 16) !== 14) wordArray.push(0);
+            
+            wordArray.push(msgLen >>> 29);
+            wordArray.push((msgLen << 3) & 0x0ffffffff);
+            
+            for (i = 0; i < wordArray.length; i += 16) {
+                for (j = 0; j < 16; j++) W[j] = wordArray[i + j];
+                for (j = 16; j < 80; j++) W[j] = rotateLeft(W[j - 3] ^ W[j - 8] ^ W[j - 14] ^ W[j - 16], 1);
+                
+                a = H[0]; b = H[1]; c = H[2]; d = H[3]; e = H[4];
+                
+                for (j = 0; j < 80; j++) {
+                    if (j < 20) {
+                        T = (rotateLeft(a, 5) + (b & c | ~b & d) + e + W[j] + 0x5A827999) & 0x0ffffffff;
+                    } else if (j < 40) {
+                        T = (rotateLeft(a, 5) + (b ^ c ^ d) + e + W[j] + 0x6ED9EBA1) & 0x0ffffffff;
+                    } else if (j < 60) {
+                        T = (rotateLeft(a, 5) + (b & c | b & d | c & d) + e + W[j] + 0x8F1BBCDC) & 0x0ffffffff;
+                    } else {
+                        T = (rotateLeft(a, 5) + (b ^ c ^ d) + e + W[j] + 0xCA62C1D6) & 0x0ffffffff;
+                    }
+                    
+                    e = d;
+                    d = c;
+                    c = rotateLeft(b, 30);
+                    b = a;
+                    a = T;
+                }
+                
+                H[0] = (H[0] + a) & 0x0ffffffff;
+                H[1] = (H[1] + b) & 0x0ffffffff;
+                H[2] = (H[2] + c) & 0x0ffffffff;
+                H[3] = (H[3] + d) & 0x0ffffffff;
+                H[4] = (H[4] + e) & 0x0ffffffff;
+            }
+            
+            // 创建返回的ArrayBuffer
+            const result = new ArrayBuffer(20);
+            const view = new DataView(result);
+            view.setUint32(0, H[0], false);
+            view.setUint32(4, H[1], false);
+            view.setUint32(8, H[2], false);
+            view.setUint32(12, H[3], false);
+            view.setUint32(16, H[4], false);
+            
+            return result;
+        }
+        
+        // 循环左移位操作
+        function rotateLeft(value, shift) {
+            return ((value << shift) | (value >>> (32 - shift))) & 0xFFFFFFFF;
+        }
+        
+        // 隐藏所有结果
+        function hideResults() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('successResult').style.display = 'none';
+            document.getElementById('errorResult').style.display = 'none';
+        }
+        
+        // 显示错误信息
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorResult').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

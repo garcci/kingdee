@@ -1,0 +1,9 @@
+{
+  "name": "金蝶云单点登录",
+  "short_name": "金蝶SSO",
+  "description": "金蝶云单点登录应用 - 离线可用",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#007bff"
+}
