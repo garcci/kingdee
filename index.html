@@ -4,17 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>金蝶云单点登录</title>
-    <meta name="description" content="金蝶云单点登录应用 - 离线可用">
+    <meta name="description" content="金蝶云单点登录应用 - 纯静态版本">
     <meta name="theme-color" content="#007bff">
     <link rel="manifest" href="manifest.json">
     <style>
         :root {
             --primary-color: #007bff;
+            --primary-dark: #0069d9;
             --success-color: #28a745;
+            --success-dark: #218838;
             --danger-color: #dc3545;
+            --danger-dark: #c82333;
             --warning-color: #ffc107;
+            --warning-dark: #e0a800;
             --light-color: #f8f9fa;
             --dark-color: #343a40;
+            --gray-color: #6c757d;
+            --light-gray: #e9ecef;
+            --border-color: #dee2e6;
+            --shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            --shadow-hover: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
         }
         
         * {
@@ -27,7 +36,8 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             line-height: 1.6;
             color: #333;
-            background-color: #f5f5f5;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
             padding: 20px;
         }
         
@@ -45,19 +55,37 @@
         h1 {
             color: var(--dark-color);
             margin-bottom: 10px;
+            font-size: 2.2rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .subtitle {
+            color: var(--gray-color);
+            font-size: 1.1rem;
         }
         
         .card {
             background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
             padding: 30px;
             margin-bottom: 20px;
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+        
+        .card-header {
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            padding-bottom: 15px;
         }
         
         h2 {
             color: var(--dark-color);
-            margin-bottom: 20px;
+            margin-bottom: 0;
             font-size: 1.5rem;
         }
         
@@ -68,16 +96,23 @@
         label {
             display: block;
             margin-bottom: 5px;
-            font-weight: bold;
+            font-weight: 600;
             color: var(--dark-color);
         }
         
         input, select {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
             font-size: 16px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: 0;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
         }
         
         .btn {
@@ -87,15 +122,23 @@
             border: none;
             padding: 12px 24px;
             font-size: 16px;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             text-align: center;
             text-decoration: none;
-            transition: background-color 0.3s;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            box-shadow: var(--shadow);
         }
         
         .btn:hover {
-            background-color: #0069d9;
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
         }
         
         .btn-success {
@@ -103,7 +146,7 @@
         }
         
         .btn-success:hover {
-            background-color: #218838;
+            background-color: var(--success-dark);
         }
         
         .btn-danger {
@@ -111,7 +154,7 @@
         }
         
         .btn-danger:hover {
-            background-color: #c82333;
+            background-color: var(--danger-dark);
         }
         
         .btn-warning {
@@ -120,7 +163,7 @@
         }
         
         .btn-warning:hover {
-            background-color: #e0a800;
+            background-color: var(--warning-dark);
         }
         
         .btn-block {
@@ -129,13 +172,19 @@
         }
         
         .btn-sm {
-            padding: 5px 10px;
+            padding: 6px 12px;
             font-size: 14px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
         }
         
         .result {
             padding: 15px;
-            border-radius: 4px;
+            border-radius: 6px;
             margin-top: 20px;
             display: none;
         }
@@ -164,13 +213,13 @@
         }
         
         .spinner {
-            border: 4px solid #f3f3f3;
+            border: 4px solid rgba(0, 0, 0, 0.1);
             border-top: 4px solid var(--primary-color);
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 2s linear infinite;
-            margin: 0 auto;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
         }
         
         @keyframes spin {
@@ -184,9 +233,10 @@
         
         .tab {
             overflow: hidden;
-            border: 1px solid #ccc;
-            background-color: #f1f1f1;
-            border-radius: 4px 4px 0 0;
+            border: 1px solid var(--border-color);
+            background-color: var(--light-color);
+            border-radius: 6px 6px 0 0;
+            margin-bottom: -1px;
         }
         
         .tab button {
@@ -195,13 +245,16 @@
             border: none;
             outline: none;
             cursor: pointer;
-            padding: 14px 16px;
+            padding: 16px 20px;
             transition: 0.3s;
             font-size: 16px;
+            font-weight: 500;
+            color: var(--gray-color);
         }
         
         .tab button:hover {
-            background-color: #ddd;
+            background-color: var(--light-gray);
+            color: var(--dark-color);
         }
         
         .tab button.active {
@@ -211,10 +264,10 @@
         
         .tabcontent {
             display: none;
-            padding: 20px;
-            border: 1px solid #ccc;
+            padding: 25px;
+            border: 1px solid var(--border-color);
             border-top: none;
-            border-radius: 0 0 4px 4px;
+            border-radius: 0 0 6px 6px;
             background-color: white;
         }
         
@@ -233,10 +286,12 @@
             align-items: center;
             gap: 10px;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
         
         .environment-selector select {
             flex: 1;
+            min-width: 200px;
         }
         
         .recent-users {
@@ -250,18 +305,19 @@
         }
         
         .recent-users-list li {
-            padding: 8px 12px;
-            background-color: #f8f9fa;
-            margin-bottom: 5px;
-            border-radius: 4px;
+            padding: 12px 15px;
+            background-color: var(--light-color);
+            margin-bottom: 8px;
+            border-radius: 6px;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: background-color 0.2s;
         }
         
         .recent-users-list li:hover {
-            background-color: #e9ecef;
+            background-color: var(--light-gray);
         }
         
         .remove-user {
@@ -269,45 +325,48 @@
             border: none;
             color: var(--danger-color);
             cursor: pointer;
-            font-size: 18px;
+            font-size: 20px;
             padding: 0;
-            width: 24px;
-            height: 24px;
+            width: 30px;
+            height: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.2s;
         }
         
-        /* 更新提示样式 */
-        .update-banner {
-            background-color: var(--warning-color);
-            color: #212529;
-            padding: 10px 20px;
-            text-align: center;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            display: none;
-        }
-        
-        .update-banner button {
-            margin-left: 10px;
-            padding: 5px 10px;
-            background-color: var(--dark-color);
-            color: white;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
+        .remove-user:hover {
+            background-color: rgba(220, 53, 69, 0.1);
         }
         
         footer {
             text-align: center;
             margin-top: 30px;
             padding: 20px;
-            color: #6c757d;
+            color: var(--gray-color);
             font-size: 0.9rem;
+        }
+        
+        .instructions {
+            background-color: #e9f7fe;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 0 4px 4px 0;
+            margin: 20px 0;
+        }
+        
+        .instructions h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
         }
         
         @media (max-width: 768px) {
@@ -322,19 +381,24 @@
             .config-grid {
                 grid-template-columns: 1fr;
             }
+            
+            .environment-selector {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .tab button {
+                width: 100%;
+                text-align: center;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="update-banner" id="updateBanner">
-        有新版本可用
-        <button onclick="updateApp()">更新</button>
-    </div>
-    
     <div class="container">
         <header>
             <h1>金蝶云单点登录</h1>
-            <p>完全静态的本地单点登录解决方案</p>
+            <p class="subtitle">纯静态版本</p>
         </header>
         
         <main>
@@ -345,7 +409,9 @@
                 </div>
                 
                 <div id="config" class="tabcontent" style="display: block;">
-                    <h2>系统配置</h2>
+                    <div class="card-header">
+                        <h2>系统配置</h2>
+                    </div>
                     
                     <div class="environment-selector">
                         <label for="environmentSelect">环境选择:</label>
@@ -387,13 +453,17 @@
                         </div>
                     </div>
                     
-                    <button class="btn" onclick="saveConfig()">保存配置</button>
-                    <button class="btn" onclick="loadConfig()" style="margin-left: 10px;">加载已保存配置</button>
-                    <button class="btn btn-success" onclick="testConfig()" style="margin-left: 10px;">测试配置</button>
+                    <div class="btn-group">
+                        <button class="btn" onclick="saveConfig()">保存配置</button>
+                        <button class="btn" onclick="loadConfig()" style="margin-left: 10px;">加载已保存配置</button>
+                        <button class="btn btn-success" onclick="testConfig()" style="margin-left: 10px;">测试配置</button>
+                    </div>
                 </div>
                 
                 <div id="login" class="tabcontent">
-                    <h2>用户登录</h2>
+                    <div class="card-header">
+                        <h2>用户登录</h2>
+                    </div>
                     
                     <div class="form-group">
                         <label for="username">用户名:</label>
@@ -428,85 +498,56 @@
             </div>
             
             <div class="card">
-                <h2>使用说明</h2>
-                <ol>
-                    <li><strong>系统配置</strong>：
-                        <ul>
-                            <li>在"系统配置"标签页中选择或创建环境</li>
-                            <li>填写金蝶云系统的配置信息</li>
-                            <li>点击"保存配置"按钮保存当前环境配置</li>
-                        </ul>
-                    </li>
-                    <li><strong>用户登录</strong>：
-                        <ul>
-                            <li>切换到"用户登录"标签页</li>
-                            <li>从最近使用的用户列表中选择或输入新用户名</li>
-                            <li>点击"执行单点登录"按钮</li>
-                        </ul>
-                    </li>
-                    <li><strong>自动跳转</strong>：系统将自动计算签名并在新窗口中打开金蝶云系统</li>
-                </ol>
+                <div class="card-header">
+                    <h2>使用说明</h2>
+                </div>
+                <div class="instructions">
+                    <h3>操作指南</h3>
+                    <ol>
+                        <li><strong>系统配置</strong>：
+                            <ul>
+                                <li>在"系统配置"标签页中选择或创建环境</li>
+                                <li>填写金蝶云系统的配置信息</li>
+                                <li>点击"保存配置"按钮保存当前环境配置</li>
+                            </ul>
+                        </li>
+                        <li><strong>用户登录</strong>：
+                            <ul>
+                                <li>切换到"用户登录"标签页</li>
+                                <li>从最近使用的用户列表中选择或输入新用户名</li>
+                                <li>点击"执行单点登录"按钮</li>
+                            </ul>
+                        </li>
+                        <li><strong>自动跳转</strong>：系统将自动计算签名并在新窗口中打开金蝶云系统</li>
+                    </ol>
+                </div>
                 <p><strong>注意：</strong>所有配置信息和用户名历史将保存在浏览器本地存储中，不会上传到任何服务器。</p>
-                <p><strong>离线功能：</strong>此应用支持离线使用，首次访问后即可在无网络情况下使用大部分功能。</p>
+                <p><strong>纯静态版本：</strong>此版本不依赖任何后端服务，所有计算均在浏览器端完成，无请求资源消耗。</p>
             </div>
         </main>
         
         <footer>
-            <p>金蝶云单点登录 &copy; 2025</p>
+            <p>金蝶云单点登录 &copy; 2025 | 纯静态版本</p>
         </footer>
     </div>
 
     <script>
-        // Service Worker 相关变量
-        let deferredPrompt;
-        let newWorker;
-        
-        // 注册 Service Worker
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(registration => {
-                        console.log('SW registered: ', registration);
-                        
-                        // 检查是否有更新
-                        registration.addEventListener('updatefound', () => {
-                            newWorker = registration.installing;
-                            
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // 显示更新提示
-                                    document.getElementById('updateBanner').style.display = 'block';
-                                }
-                            });
-                        });
-                    })
-                    .catch(registrationError => {
-                        console.log('SW registration failed: ', registrationError);
-                    });
-            });
-            
-            // 监听 controllerchange 事件
-            let refreshing;
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
-                if (!refreshing) {
-                    window.location.reload();
-                    refreshing = true;
-                }
-            });
-        }
-        
-        // 更新应用
-        function updateApp() {
-            if (newWorker) {
-                newWorker.postMessage({ action: 'skipWaiting' });
-            }
-        }
-        
         // 页面加载时初始化
         window.onload = function() {
             loadEnvironmentList();
             loadEnvironmentConfig();
             loadRecentUsers();
+            
+            // 注册 Service Worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(function(registration) {
+                        console.log('Service Worker registered with scope:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            }
         };
         
         // Tab切换功能
@@ -687,9 +728,14 @@
                 
                 // 在新窗口中打开金蝶云系统
                 setTimeout(() => {
-                    window.open(redirectUrl, '_blank');
-                    // 可选：在当前窗口显示成功消息后关闭
-                    // document.getElementById('successResult').innerHTML = '<p>已在新窗口中打开金蝶云系统</p>';
+                    const newWindow = window.open(redirectUrl, '_blank');
+                    if (!newWindow) {
+                        showError('弹窗被浏览器阻止，请允许弹窗后重试');
+                        document.getElementById('successResult').style.display = 'none';
+                    } else {
+                        // 跳转成功后更新消息
+                        document.getElementById('successResult').innerHTML = '<p>已在新窗口中打开金蝶云系统</p>';
+                    }
                 }, 1500);
             } catch (error) {
                 document.getElementById('loading').style.display = 'none';
@@ -702,12 +748,22 @@
         
         // 加载最近使用的用户
         function loadRecentUsers() {
-            recentUsers = JSON.parse(localStorage.getItem('kingdee_recent_users') || '[]');
+            try {
+                recentUsers = JSON.parse(localStorage.getItem('kingdee_recent_users') || '[]');
+            } catch (e) {
+                console.error('解析最近用户数据失败:', e);
+                recentUsers = [];
+            }
             updateRecentUsersList();
         }
         
         // 添加到最近使用的用户
         function addRecentUser(username) {
+            // 验证用户名
+            if (!username || typeof username !== 'string') {
+                return;
+            }
+            
             // 移除已存在的相同用户名
             recentUsers = recentUsers.filter(user => user !== username);
             // 添加到开头
@@ -717,7 +773,11 @@
                 recentUsers = recentUsers.slice(0, 10);
             }
             // 保存到本地存储
-            localStorage.setItem('kingdee_recent_users', JSON.stringify(recentUsers));
+            try {
+                localStorage.setItem('kingdee_recent_users', JSON.stringify(recentUsers));
+            } catch (e) {
+                console.error('保存最近用户数据失败:', e);
+            }
             // 更新显示
             updateRecentUsersList();
         }
@@ -725,13 +785,15 @@
         // 更新最近用户列表显示
         function updateRecentUsersList() {
             const listElement = document.getElementById('recentUsersList');
+            if (!listElement) return;
+            
             listElement.innerHTML = '';
             
             recentUsers.forEach(user => {
                 const li = document.createElement('li');
                 li.innerHTML = `
-                    <span onclick="selectUser('${user}')">${user}</span>
-                    <button class="remove-user" onclick="removeRecentUser('${user}')">&times;</button>
+                    <span onclick="selectUser('${user.replace(/'/g, "\\\\'")}')">${user}</span>
+                    <button class="remove-user" onclick="removeRecentUser('${user.replace(/'/g, "\\\\'")}')">&times;</button>
                 `;
                 listElement.appendChild(li);
             });
@@ -739,13 +801,20 @@
         
         // 选择用户
         function selectUser(username) {
-            document.getElementById('username').value = username;
+            const usernameInput = document.getElementById('username');
+            if (usernameInput) {
+                usernameInput.value = username;
+            }
         }
         
         // 移除最近用户
         function removeRecentUser(username) {
             recentUsers = recentUsers.filter(user => user !== username);
-            localStorage.setItem('kingdee_recent_users', JSON.stringify(recentUsers));
+            try {
+                localStorage.setItem('kingdee_recent_users', JSON.stringify(recentUsers));
+            } catch (e) {
+                console.error('保存最近用户数据失败:', e);
+            }
             updateRecentUsersList();
         }
         
@@ -753,23 +822,33 @@
         function clearRecentUsers() {
             if (confirm('确定要清空最近使用的用户历史吗？')) {
                 recentUsers = [];
-                localStorage.removeItem('kingdee_recent_users');
+                try {
+                    localStorage.removeItem('kingdee_recent_users');
+                } catch (e) {
+                    console.error('清除最近用户数据失败:', e);
+                }
                 updateRecentUsersList();
             }
         }
         
         // 过滤最近用户（根据输入内容）
         function filterRecentUsers() {
-            const input = document.getElementById('username').value.toLowerCase();
+            const inputElement = document.getElementById('username');
             const listElement = document.getElementById('recentUsersList');
+            if (!inputElement || !listElement) return;
+            
+            const input = inputElement.value.toLowerCase();
             const items = listElement.getElementsByTagName('li');
             
             for (let i = 0; i < items.length; i++) {
-                const userName = items[i].getElementsByTagName('span')[0].textContent.toLowerCase();
-                if (userName.includes(input)) {
-                    items[i].style.display = '';
-                } else {
-                    items[i].style.display = 'none';
+                const userNameElement = items[i].getElementsByTagName('span')[0];
+                if (userNameElement) {
+                    const userName = userNameElement.textContent.toLowerCase();
+                    if (userName.includes(input)) {
+                        items[i].style.display = '';
+                    } else {
+                        items[i].style.display = 'none';
+                    }
                 }
             }
         }
@@ -913,8 +992,14 @@
         
         // 显示错误信息
         function showError(message) {
-            document.getElementById('errorMessage').textContent = message;
-            document.getElementById('errorResult').style.display = 'block';
+            const errorElement = document.getElementById('errorMessage');
+            if (errorElement) {
+                errorElement.textContent = message;
+            }
+            const errorResultElement = document.getElementById('errorResult');
+            if (errorResultElement) {
+                errorResultElement.style.display = 'block';
+            }
         }
     </script>
 </body>
